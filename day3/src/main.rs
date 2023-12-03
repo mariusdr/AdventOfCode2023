@@ -3,34 +3,6 @@ use std::fs::File;
 use std::io;
 use std::iter::Peekable;
 
-struct LineIndices<Buf: BufRead> {
-    offset: usize,
-    iter: std::io::Lines<Buf>,
-}
-
-impl<Buf: BufRead> LineIndices<Buf> {
-    fn new(iter: std::io::Lines<Buf>) -> Self {
-        Self { offset: 0, iter }
-    }
-}
-
-fn lines_indices<Buf: BufRead>(br: Buf) -> LineIndices<Buf> {
-    LineIndices::<Buf>::new(br.lines())
-}
-
-impl<Buf: BufRead> Iterator for LineIndices<Buf> {
-    type Item = (usize, std::io::Result<String>);
-    
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(n) = self.iter.next() {
-            let idx = self.offset;
-            self.offset += 1;
-            return Some((idx, n));
-        }
-        None
-    }
-}
-
 struct DigitGroup<Iter: Iterator<Item = (usize, u32)>> {
     iter: Peekable<Iter>
 }
@@ -99,7 +71,7 @@ fn main() -> io::Result<()> {
     let mut grid = vec![vec![0usize; WIDTH]; HEIGHT];
     let mut symbols: Vec<(usize, usize)> = Vec::new();
 
-    for (i, line) in lines_indices(reader) {
+    for (i, line) in reader.lines().enumerate() {
         let line = line?.clone();
 
         let it = line  
