@@ -97,19 +97,24 @@ fn main() -> io::Result<()> {
         symbols.append(&mut syms);
     }
 
-    let mut sum = 0u32;
-    for (i, j) in symbols {
-        let mut vals = halo((i, j), DIM).iter().map(|(i, j)| {
-            let idx = grid[*i][*j];
-            values[idx]
-        }).collect::<Vec<u32>>();
+    let sum: u32 = symbols.iter().map(|coord| {
+        let mut vals = halo(*coord, DIM)
+            .iter()
+            .filter(|(i, j)| grid[*i][*j] > 0)
+            .map(|(i, j)| {
+                let idx = grid[*i][*j];
+                values[idx]
+            })
+            .collect::<Vec<u32>>();
         vals.sort();
         vals.dedup(); 
-        if vals.len() == 3 {
-            sum += vals[1] * vals[2]
+        if vals.len() == 2 {
+            vals[0] * vals[1]
+        } else {
+            0
         }
-    }
-    println!("solution is {}", sum);
+    }).sum();
 
+    println!("solution is {}", sum);
     Ok(())
 }
