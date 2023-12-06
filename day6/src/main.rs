@@ -36,11 +36,25 @@ fn parse_line(xs: &str) -> io::Result<(Vec<usize>, &str)> {
     Ok((ns, ys))
 }
 
-// travel distance = time held * (time limit - time held)
+// t = time button is held
+// L = time limit of the race
+// K = record distance
+// 
+// the distance traveled is D(t) = t * (L - t)
+// 
+// Find all t in 1..L where D(t) - K > 0, so basically solve for t:
+// 
+// 0 = t * (L - t) - K = -t^2 + tL - K 
+// 0 = t^2 - tL + K
+//
+// ==> the basic quadratic equation (abc-formel!!)
 
-#[inline]
-fn calc_dist(time_held: usize, time_limit: usize) -> usize {
-    time_held * (time_limit - time_held)
+fn closed_form(time_limit: usize, record_dist: usize) -> (usize, usize) {
+    let l = time_limit as f64;
+    let k = record_dist as f64;
+    let t1 = (l + (l*l - 4.0 * k).sqrt()) * 0.5;
+    let t2 = (l - (l*l - 4.0 * k).sqrt()) * 0.5;
+    (t1 as usize, t2 as usize)
 }
 
 fn main() -> io::Result<()>{
@@ -51,20 +65,15 @@ fn main() -> io::Result<()>{
     let (ts, _) = parse_line(parts[0])?;
     let (ds, _) = parse_line(parts[1])?;
 
-    let mut prod = 1;
     for (&tl, &rd) in ts.iter().zip(ds.iter()) {
         let tl = tl as usize;
         let rd = rd as usize;
 
-        let mut ways = 0; 
-        for t in 1..=tl {
-            if calc_dist(t, tl) > rd {
-                ways += 1;
-            }
-        }
-        prod *= ways;
+        let (t0, t1) = closed_form(tl, rd);
+
+        let delta = std::cmp::max(t0, t1) - std::cmp::min(t0, t1);
+        println!("solution is {}", delta);
     }
-    println!("solution is {}", prod);
 
     Ok(())
 }
